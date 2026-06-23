@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>项目详情 - 众筹宝</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 380px;
+      gap: 24px;
+    }
+    @media (max-width: 900px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+    .cover {
+      width: 100%;
+      height: 320px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      border-radius: var(--radius-lg);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 120px;
+      color: white;
+      margin-bottom: 24px;
+    }
+    .donate-card { position: sticky; top: 100px; }
+    .donation-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .donation-row:last-child { border-bottom: none; }
+    .donor-avatar {
+      width: 40px; height: 40px; border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex; align-items: center; justify-content: center;
+      color: white; font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+
+  <div class="container" id="app">
+    <div class="text-center"><div class="loading"></div></div>
+  </div>
+
+  <footer class="footer">
+    <p>🪙 区块链众筹系统 · 纯链上模式</p>
+  </footer>
+
+  <script src="/js/app.js"></script>
+  <script>
+    renderNavbar('projects');
+
+    const projectId = new URLSearchParams(location.search).get('id');
+
+    async function load() {
+      if (!projectId) {
+        document.getElementById('app').innerHTML = '<div class="alert alert-danger">缺少项目ID</div>';
+        return;
+      }
+      const res = await api.getProjectDetail(projectId);
+      if (res.code !== 0) {
+        document.getElementById('app').innerHTML = `<div class="alert alert-danger">${res.message || '加载失败'}</div>`;
+        return;
+      }
+      render(res.data);
+    }
+
+    function render(data) {
+      const p = data.project;
+      const stats = data.stats;
+      const recent = data.recentDonations || [];
+      const percent = Math.min(100, (parseFloat(p.currentAmount) / parseFloat(p.goalAmount) * 100)).toFixed(1);
+      const days = Math.max(0, Math.ceil((new Date(p.deadline) - new Date()) / (1000 * 60 * 60 * 24)));
+      const isFunding = p.status === 0 && days > 0;
+      const isSuccess = p.status === 1;
+      const isFailed = p.status === 2;
+      const me = Auth.getUser();
+      const myAddr = Auth.getAddress();
+      const isCreator = me && myAddr === p.creator;
+      const canWithdraw = isCreator && isSuccess;
+      const canRefund = me && isFailed && !isCreator;
+
+      document.getElementById('app').innerHTML = `
+        <div class="detail-grid">
+          <div>
+            <div class="cover">🎯</div>
+            <div class="card">
+              <div class="flex items-center gap-1 mb-2">
+                <span class="badge badge-primary">${p.category || '其他'}</span>
+                ${statusBadge(p.status)}
+                <span class="text-muted text-sm">发起于 ${formatTime(p.created_at)}</span>
+              </div>
+              <h1 style="font-size:32px;font-weight:800;margin-bottom:16px;line-height:1.3">${p.title}</h1>
+              <div class="flex items-center gap-2 mb-3 text-sm">
+                <div class="donor-avatar" style="width:32px;height:32px;font-size:14px">${(p.creator_name || '?')[0].toUpperCase()}</div>
+                <div>
+                  <div class="text-bold">${p.creator_real_name || p.creator_name}</div>
+                  <div class="text-muted text-sm">${formatAddress(p.creator_wallet)}</div>
+                </div>
+              </div>
+              <div style="line-height:1.8;color:var(--gray-700);white-space:pre-wrap">${p.description || '该项目暂无详细介绍。'}</div>
+            </div>
+
+            <div class="card mt-3">
+              <h2 class="text-xl text-bold mb-2">💝 捐赠记录 (${stats.donor_count})</h2>
+              ${recent.length === 0
+                ? '<div class="text-muted text-center" style="padding:20px">暂无捐赠记录</div>'
+                : recent.map(d => `
+                  <div class="donation-row">
+                    <div class="donor-avatar">${(d.username || d.real_name || '?')[0].toUpperCase()}</div>
+                    <div class="flex-1">
+                      <div class="text-bold">${d.real_name || d.username}</div>
+                      <div class="text-muted text-sm">${formatTime(d.timestamp)}${d.refunded ? ' · <span class="badge badge-warning">已退款</span>' : ''}${d.message ? ' · ' + d.message : ''}</div>
+                    </div>
+                    <div class="text-right">
+                      <div class="text-bold text-primary">${formatETH(d.amount)}</div>
+                      <div class="text-muted text-sm">${formatAddress(d.donor, 6, 4)}</div>
+                    </div>
+                  </div>
+                `).join('')
+              }
+            </div>
+          </div>
+
+          <div>
+            <div class="card donate-card">
+              <div class="flex justify-between mb-2">
+                <span class="text-muted text-sm">已筹集</span>
+                <span class="text-bold">${percent}%</span>
+              </div>
+              <div class="text-2xl text-bold text-primary mb-1">${formatETH(p.currentAmount)}</div>
+              <div class="text-muted text-sm mb-3">目标 ${formatETH(p.goalAmount)}</div>
+              <div class="progress mb-3" style="height:10px"><div class="progress-bar" style="width:${percent}%"></div></div>
+              <div class="flex justify-between mb-3 text-sm">
+                <div><div class="text-muted">支持者</div><div class="text-bold">${stats.donor_count || 0} 人</div></div>
+                <div class="text-right"><div class="text-muted">剩余时间</div><div class="text-bold">${days > 0 ? days + ' 天' : '已结束'}</div></div>
+              </div>
+
+              ${isFunding ? `
+                <button class="btn btn-primary btn-block btn-lg" onclick="openDonate()">💝 立即支持</button>
+                <p class="text-muted text-sm text-center mt-1">链上交易 · 安全透明</p>
+              ` : ''}
+              ${isSuccess ? `
+                <div class="alert alert-success text-center">🎉 众筹成功！</div>
+                ${canWithdraw ? `<button class="btn btn-success btn-block btn-lg" onclick="withdraw()">💰 提取资金</button>` : ''}
+              ` : ''}
+              ${isFailed ? `
+                <div class="alert alert-danger text-center">众筹未达到目标</div>
+                ${canRefund ? `<button class="btn btn-warning btn-block btn-lg" onclick="refund()">↩️ 申请退款</button>` : ''}
+              ` : ''}
+              ${p.status === 3 ? '<div class="alert alert-info text-center">资金已提取</div>' : ''}
+
+              <div class="mt-3 pt-3" style="border-top:1px solid var(--border)">
+                <div class="text-muted text-sm mb-1">⛓️ 链上信息</div>
+                <div class="text-sm">项目ID: <span class="wallet-info">#${p.id}</span></div>
+                <div class="text-sm">创建者: <span class="wallet-info">${formatAddress(p.creator_wallet, 8, 6)}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function openDonate() {
+      if (!Auth.isLoggedIn()) {
+        showToast('请先登录', 'warning');
+        setTimeout(() => location.href = '/login.html', 600);
+        return;
+      }
+      const html = `
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="modal-header">
+            <div class="modal-title">💝 链上捐赠</div>
+            <button class="modal-close" onclick="closeModal()">×</button>
+          </div>
+          <div class="form-group">
+            <label class="form-label">捐赠金额 (ETH)</label>
+            <input type="number" id="donate-amount" class="form-control" min="0.001" step="0.001" placeholder="0.1" value="0.1">
+            <div class="form-hint">从您的链上钱包扣除</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">留言（可选）</label>
+            <textarea id="donate-msg" class="form-control" rows="2" placeholder="给项目方留言..."></textarea>
+          </div>
+          <div class="alert alert-info" style="font-size:13px">
+            ⚙️ <strong>链上交易确认中</strong><br>
+            交易将由模拟区块链节点打包，约 1-2 秒确认
+          </div>
+          <button class="btn btn-primary btn-block btn-lg" onclick="submitDonate()">确认捐赠</button>
+        </div>
+      `;
+      showModal(html);
+    }
+
+    async function submitDonate() {
+      const amount = parseFloat(document.getElementById('donate-amount').value);
+      const message = document.getElementById('donate-msg').value;
+      if (!amount || amount <= 0) return showToast('请输入有效金额', 'danger');
+
+      showToast('⛓️ 链上交易已发送，等待打包...', 'info');
+      await new Promise(r => setTimeout(r, 1000));
+
+      const res = await api.createDonation({
+        donor: Auth.getAddress(),
+        projectId: parseInt(projectId),
+        amount,
+        message
+      });
+
+      if (res.code === 0) {
+        showToast(`🎉 捐赠成功！交易哈希 ${formatAddress(res.data.tx_hash, 10, 8)}`, 'success');
+        closeModal();
+        setTimeout(load, 800);
+      } else {
+        showToast(res.message, 'danger');
+      }
+    }
+
+    async function withdraw() {
+      if (!confirm('确认提取项目资金？此操作将清零项目已筹集金额并转入您的链上钱包。')) return;
+      showToast('⛓️ 链上交易已发送...', 'info');
+      await new Promise(r => setTimeout(r, 800));
+      const res = await api.withdrawFunds({
+        creator: Auth.getAddress(),
+        projectId: parseInt(projectId)
+      });
+      if (res.code === 0) {
+        showToast('🎉 资金提取成功！', 'success');
+        setTimeout(load, 800);
+      } else {
+        showToast(res.message, 'danger');
+      }
+    }
+
+    async function refund() {
+      if (!confirm('确认申请退款？资金将退回您的链上钱包。')) return;
+      showToast('⛓️ 链上交易已发送...', 'info');
+      await new Promise(r => setTimeout(r, 800));
+      const res = await api.refund({
+        donor: Auth.getAddress(),
+        projectId: parseInt(projectId)
+      });
+      if (res.code === 0) {
+        showToast('🎉 退款成功！', 'success');
+        setTimeout(load, 800);
+      } else {
+        showToast(res.message, 'danger');
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>

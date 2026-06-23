@@ -1,0 +1,12 @@
+{
+  "name": "blockchain-crowdfunding",
+  "version": "2.0.0",
+  "description": "基于区块链的众筹系统 - 纯链上模式，无需 MySQL",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js",
+    "reset": "node -e \"require('fs').unlinkSync('chain-data.json')\""
+  },
+  "dependencies": {}
+}

@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>众筹宝 - 基于区块链的众筹平台</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .hero {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #06b6d4 100%);
+      color: white;
+      padding: 80px 24px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+      opacity: 0.4;
+    }
+    .hero-content { position: relative; z-index: 1; max-width: 800px; margin: 0 auto; }
+    .hero h1 { font-size: 48px; font-weight: 800; margin-bottom: 16px; line-height: 1.2; }
+    .hero .subtitle { font-size: 20px; opacity: 0.95; margin-bottom: 32px; }
+    .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+    .hero .btn { padding: 14px 32px; font-size: 16px; }
+    .hero .btn-white { background: white; color: var(--primary); }
+    .hero .btn-white:hover { background: #f9fafb; }
+    .hero .btn-outline-white { background: transparent; color: white; border: 2px solid white; }
+    .hero .btn-outline-white:hover { background: white; color: var(--primary); }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 24px;
+      max-width: 1000px;
+      margin: -50px auto 0;
+      padding: 0 24px;
+      position: relative;
+      z-index: 2;
+    }
+    .stat-card {
+      background: white;
+      padding: 24px;
+      border-radius: var(--radius);
+      text-align: center;
+      box-shadow: var(--shadow-lg);
+    }
+    .stat-icon { font-size: 32px; margin-bottom: 8px; }
+    .stat-num { font-size: 32px; font-weight: 800; color: var(--primary); }
+    .stat-label { color: var(--text-muted); font-size: 14px; }
+
+    .features {
+      padding: 80px 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .section-title {
+      text-align: center;
+      font-size: 36px;
+      font-weight: 800;
+      margin-bottom: 12px;
+    }
+    .section-subtitle {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 16px;
+      margin-bottom: 48px;
+    }
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+    }
+    .feature-card {
+      padding: 32px 24px;
+      background: white;
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      transition: transform 0.3s;
+    }
+    .feature-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .feature-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      color: white;
+    }
+    .feature-title { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+    .feature-desc { color: var(--text-muted); font-size: 14px; }
+
+    .featured-projects {
+      background: var(--gray-50);
+      padding: 80px 24px;
+    }
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar" id="navbar"></nav>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1>用区块链，重塑信任<br>让每一个梦想都被支持</h1>
+      <p class="subtitle">基于以太坊智能合约的去中心化众筹平台，公开透明、不可篡改、安全可靠</p>
+      <div class="hero-buttons">
+        <a href="/projects.html" class="btn btn-white">浏览项目</a>
+        <a href="/create-project.html" class="btn btn-outline-white">发起众筹</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="stats">
+    <div class="stat-card">
+      <div class="stat-icon">🚀</div>
+      <div class="stat-num" id="stat-projects">0</div>
+      <div class="stat-label">众筹项目</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-num" id="stat-amount">0</div>
+      <div class="stat-label">已筹集 ETH</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-num" id="stat-donors">0</div>
+      <div class="stat-label">支持者</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">🔗</div>
+      <div class="stat-num" id="stat-tx">100%</div>
+      <div class="stat-label">链上透明</div>
+    </div>
+  </div>
+
+  <section class="features">
+    <h2 class="section-title">核心优势</h2>
+    <p class="section-subtitle">区块链 + 智能合约，让众筹更安全、更透明、更高效</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">🛡️</div>
+        <div class="feature-title">资金安全</div>
+        <div class="feature-desc">智能合约托管资金，众筹失败自动退款，无人为干预</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔍</div>
+        <div class="feature-title">公开透明</div>
+        <div class="feature-desc">所有交易记录上链可查，每一笔捐赠都可追溯</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-title">高效结算</div>
+        <div class="feature-desc">达成目标后项目方一键提取，无需第三方介入</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🦊</div>
+        <div class="feature-title">MetaMask</div>
+        <div class="feature-desc">集成 MetaMask 钱包，使用熟悉、签名安全</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🌐</div>
+        <div class="feature-title">去中心化</div>
+        <div class="feature-desc">基于以太坊区块链，无中心服务器，数据不可篡改</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💎</div>
+        <div class="feature-title">低门槛</div>
+        <div class="feature-desc">人人可发起、人人可参与，让创意不再被资金困住</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="featured-projects">
+    <h2 class="section-title">热门项目</h2>
+    <p class="section-subtitle">正在进行的精选众筹项目</p>
+    <div class="project-grid" id="project-grid">
+      <div class="empty-state">
+        <div class="loading"></div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>🪙 区块链众筹系统 - 基于以太坊智能合约</p>
+      <p class="text-sm mt-1">© 2026 Crowdfunding DApp · 使用 MetaMask 连接钱包</p>
+    </div>
+  </footer>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/blockchain.js"></script>
+  <script>
+    renderNavbar('home');
+
+    // 加载项目
+    async function loadProjects() {
+      const res = await api.listProjects({ page: 1, pageSize: 6, sort: 'hot' });
+      const grid = document.getElementById('project-grid');
+      if (res.code === 0 && res.data.list.length > 0) {
+        grid.innerHTML = res.data.list.map(p => projectCardHTML(p)).join('');
+        updateStats(res.data.list);
+      } else {
+        grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><div class="empty-state-icon">📦</div><div class="empty-state-text">暂无项目</div></div>';
+      }
+    }
+
+    function updateStats(projects) {
+      const totalAmount = projects.reduce((s, p) => s + parseFloat(p.currentAmount || 0), 0);
+      document.getElementById('stat-projects').textContent = projects.length + '+';
+      document.getElementById('stat-amount').textContent = totalAmount.toFixed(2);
+      const donorCount = projects.reduce((s, p) => s + (p.donor_count || 0), 0);
+      document.getElementById('stat-donors').textContent = donorCount + '+';
+    }
+
+    function projectCardHTML(p) {
+      const percent = Math.min(100, (parseFloat(p.currentAmount) / parseFloat(p.goalAmount) * 100)).toFixed(0);
+      const days = Math.max(0, Math.ceil((new Date(p.deadline) - new Date()) / (1000 * 60 * 60 * 24)));
+      return `
+        <a href="/project-detail.html?id=${p.id}" class="card" style="text-decoration:none;color:inherit;display:block;padding:0;overflow:hidden">
+          <div style="height:160px;background:linear-gradient(135deg,#${Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')},#${Math.floor(Math.random()*16777215).toString(16).padStart(6,'0')});display:flex;align-items:center;justify-content:center;font-size:48px;color:white">
+            🎯
+          </div>
+          <div style="padding:20px">
+            <div class="flex items-center gap-1 mb-1">
+              <span class="badge badge-primary">${p.category || '其他'}</span>
+              ${statusBadge(p.status)}
+            </div>
+            <h3 style="font-size:16px;font-weight:700;margin-bottom:8px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${p.title}</h3>
+            <p class="text-muted text-sm mb-2" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden">${p.description || ''}</p>
+            <div class="progress mb-1"><div class="progress-bar" style="width:${percent}%"></div></div>
+            <div class="flex justify-between text-sm mb-2">
+              <span class="text-bold text-primary">${formatETH(p.currentAmount)}</span>
+              <span class="text-muted">${percent}%</span>
+            </div>
+            <div class="flex justify-between text-sm text-muted">
+              <span>目标 ${formatETH(p.goalAmount)}</span>
+              <span>${days > 0 ? days + '天剩余' : '已结束'}</span>
+            </div>
+          </div>
+        </a>
+      `;
+    }
+
+    loadProjects();
+  </script>
+</body>
+</html>
